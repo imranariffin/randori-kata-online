@@ -1,5 +1,5 @@
 import socketio from 'socket.io-client'
-import { call, takeEvery } from 'redux-saga/effects'
+import { call, delay, put, takeEvery } from 'redux-saga/effects'
 
 import { initCodeSync } from './actions'
 
@@ -13,7 +13,13 @@ let socket
 export function* handleInitCodeSync() {
   yield call(console.log, 'handling initCodeSync')
   socket = yield call(socketio, 'http://localhost:3000')
-  socket.on('connect', () => {
-    console.log('Connected')
+  const onConnect = () => new Promise((resolve) => {
+    socket.on('connect', () => {
+      resolve()
+    })
   })
+  yield call(onConnect)
+  yield delay(500)
+  yield call(console.log, 'Connected')
+  yield put(initCodeSync.success())
 }

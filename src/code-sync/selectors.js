@@ -1,2 +1,2 @@
- export const getIsSocketConnected = ({ codeSync }) => codeSync.isSocketConnected
+ export const getIsSocketConnected = ({ codeSync }) => codeSync.status === 'completed'
  

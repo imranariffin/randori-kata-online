@@ -4,12 +4,13 @@ import createSagaMiddleware from 'redux-saga'
 import { loggerMiddleware } from '../logging/middlewares'
 import { logger } from '../logging/logger'
 
+import reducer from './reducer'
 import { runAllSagas } from './sagas'
 
 const initStore = () => {
   const sagaMiddleware = createSagaMiddleware()
   const store = createStore(
-    (state = { codeSync: 'zz' }) => state,
+    reducer,
     compose(
       applyMiddleware(
         ...[
