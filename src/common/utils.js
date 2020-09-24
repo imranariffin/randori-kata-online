@@ -1,12 +1,13 @@
+const empty = () => ({})
 
 export const ActionCreator = (basename) => (
   name,
   options = {
-    init: () => ({}),
-    success: () => ({}),
-    failure: () => ({}),
+    init: empty,
+    success: empty,
+    failure: empty,
   }) => {
-    const { init, success, failure } = options
+    const { init = empty, success = empty, failure = empty } = options
     const INIT_TYPE = `${basename}/${name}/INIT`
     const SUCCESS_TYPE = `${basename}/${name}/SUCCESS`
     const FAILURE_TYPE = `${basename}/${name}/FAILURE`
