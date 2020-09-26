@@ -2,22 +2,22 @@ import { ActionCreator } from '../common/utils'
 
 const Action = ActionCreator('codeSync')
 
-export const initCodeSync = Action('initCodeSync', {
+export const codeSyncInit = Action('codeSyncInit', {
   success: (socketId) => ({ socketId })
 })
 
-export const codeSyncReconnected = Action('codeSyncReconnected', {
+export const codeSyncReconnect = Action('codeSyncReconnect', {
   success: (socketId) => ({ socketId })
 })
 
-export const emitCodeSync = Action('emitCodeSync', {
+export const codeSyncEmit = Action('codeSyncEmit', {
   init: (event) => ({ code: event.target.value })
 })
 
-export const receiveCodeSync = Action('receiveCodeSync', {
+export const codeSyncReceived = Action('codeSyncReceived', {
   success: (code) => ({ code })
 })
 
-export const switchWriter = Action('switchWriter', {
+export const writerSwitch = Action('writerSwitch', {
   success: (writer) => ({ writer })
 })

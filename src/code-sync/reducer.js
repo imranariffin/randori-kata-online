@@ -1,4 +1,4 @@
-import { initCodeSync, receiveCodeSync, switchWriter } from './actions'
+import { codeSyncInit, codeSyncReceived, writerSwitch } from './actions'
 
 const initialState = {
   status: 'noop',
@@ -9,13 +9,13 @@ const initialState = {
 
 const reducer = (state = initialState, action) => {
   switch (action.type) {
-    case initCodeSync.INIT_TYPE: {
+    case codeSyncInit.INIT_TYPE: {
       return {
         ...state,
         status: 'in-progress',
       }
     }
-    case initCodeSync.SUCCESS_TYPE: {
+    case codeSyncInit.SUCCESS_TYPE: {
       const { payload: { socketId } } = action
       return {
         ...state,
@@ -23,20 +23,20 @@ const reducer = (state = initialState, action) => {
         socketId,
       }
     }
-    case initCodeSync.FAILURE_TYPE: {
+    case codeSyncInit.FAILURE_TYPE: {
       return {
         ...state,
         status: 'failure'
       }
     }
-    case receiveCodeSync.SUCCESS_TYPE: {
+    case codeSyncReceived.SUCCESS_TYPE: {
       const { payload: { code } } = action
       return {
         ...state,
         code
       }
     }
-    case switchWriter.SUCCESS_TYPE: {
+    case writerSwitch.SUCCESS_TYPE: {
       const { payload: { writer } } = action
       return {
         ...state,

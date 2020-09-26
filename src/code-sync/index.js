@@ -2,7 +2,7 @@ import socketio from 'socket.io-client'
 
 let socket
 
-const initCodeSync = () => {
+const codeSyncInit = () => {
   if (socket) {
     return socket
   }
@@ -11,5 +11,5 @@ const initCodeSync = () => {
 }
 
 export default {
-  initCodeSync
+  codeSyncInit
 }

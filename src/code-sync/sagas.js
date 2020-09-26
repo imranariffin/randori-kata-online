@@ -2,13 +2,13 @@ import socketio from 'socket.io-client'
 import { eventChannel } from 'redux-saga'
 import { call, delay, put, spawn, take, takeEvery } from 'redux-saga/effects'
 
-import { codeSyncReconnected, emitCodeSync, initCodeSync, receiveCodeSync, switchWriter } from './actions'
-import { EventNames } from './constants'
+import { codeSyncReconnect, codeSyncEmit, codeSyncInit, codeSyncReceived, writerSwitch } from './actions'
+import { SocketEventNames } from './constants'
 
 export function* runCodeSyncSagas() {
   yield call(console.log, 'running code sync sagas')
-  yield takeEvery(initCodeSync.INIT_TYPE, handleInitCodeSync)
-  yield takeEvery(emitCodeSync.INIT_TYPE, handleEmitCodeSync)
+  yield takeEvery(codeSyncInit.INIT_TYPE, handleCodeSyncInit)
+  yield takeEvery(codeSyncEmit.INIT_TYPE, handleCodeSyncEmit)
   yield spawn(listenToSocketEvents)
 }
 
@@ -17,25 +17,25 @@ let socket
 const createSocketChannel = (socket) => {
   console.log('start createSocketChannel, socket =', socket)
   return eventChannel(emit => {
-    socket.on(EventNames.CodeSync, (event) => {
-      console.log(`${EventNames.CodeSync}, event =`, event)
+    socket.on(SocketEventNames.CodeSync, (event) => {
+      console.log(`${SocketEventNames.CodeSync}, event =`, event)
       emit(event)
     })
 
-    socket.on(EventNames.WriterSwitch, (event) => {
-      console.log(`${EventNames.WriterSwitch}, event =`, event)
-      event.messageType = EventNames.WriterSwitch
+    socket.on(SocketEventNames.WriterSwitch, (event) => {
+      console.log(`${SocketEventNames.WriterSwitch}, event =`, event)
+      event.messageType = SocketEventNames.WriterSwitch
       emit({ ...event, payload: { writer: event.writer } })
     })
 
-    socket.on(EventNames.Connect, () => {
+    socket.on(SocketEventNames.Connect, () => {
       console.log(`connect, event =`, undefined)
-      emit({ messageType: EventNames.Connect, payload: { socketId: socket.id } })
+      emit({ messageType: SocketEventNames.Connect, payload: { socketId: socket.id } })
     })
 
     return () => {
-      socket.off(EventNames.CodeSync, () => {
-        console.log(`unsubscribing from '${EventNames.CodeSync}'`)
+      socket.off(SocketEventNames.CodeSync, () => {
+        console.log(`unsubscribing from '${SocketEventNames.CodeSync}'`)
       })
       console.log(`Closing connection '${socket.id}'`)
       socket.close()
@@ -43,8 +43,8 @@ const createSocketChannel = (socket) => {
   })
 }
 
-export function* handleInitCodeSync() {
-  yield call(console.log, 'handling initCodeSync')
+export function* handleCodeSyncInit() {
+  yield call(console.log, 'handling codeSyncInit')
   socket = yield call(socketio, 'http://localhost:3000')
   const onConnect = () => new Promise((resolve) => {
     socket.on('connect', () => {
@@ -54,11 +54,11 @@ export function* handleInitCodeSync() {
   yield call(onConnect)
   yield delay(500)
   yield call(console.log, 'Connected, socketid =', socket.id)
-  yield put(initCodeSync.success(socket.id))
+  yield put(codeSyncInit.success(socket.id))
 }
 
 function* listenToSocketEvents() {
-  yield take(initCodeSync.SUCCESS_TYPE)
+  yield take(codeSyncInit.SUCCESS_TYPE)
   const socketChannel = yield call(createSocketChannel, socket)
   yield takeEvery(socketChannel, handleSocketEvents)
 }
@@ -66,16 +66,16 @@ function* listenToSocketEvents() {
 function* handleSocketEvents(event) {
   console.log('handleSocketEvents, event =', event)
   switch (event.messageType) {
-    case EventNames.CodeSync: {
-      yield put(receiveCodeSync.success(event.payload.code))
+    case SocketEventNames.CodeSync: {
+      yield put(codeSyncReceived.success(event.payload.code))
       break
     }
-    case EventNames.WriterSwitch: {
-      yield put(switchWriter.success(event.payload.writer))
+    case SocketEventNames.WriterSwitch: {
+      yield put(writerSwitch.success(event.payload.writer))
       break
     }
-    case EventNames.Connect: {
-      yield put(codeSyncReconnected.success(event.payload.socketId))
+    case SocketEventNames.Connect: {
+      yield put(codeSyncReconnect.success(event.payload.socketId))
       break
     }
     default:
@@ -83,12 +83,12 @@ function* handleSocketEvents(event) {
   }
 }
 
-export function* handleEmitCodeSync(action) {
-  yield call(console.log, 'start handleEmitCodeSync, action =', action)
+export function* handleCodeSyncEmit(action) {
+  yield call(console.log, 'start handleCodeSyncEmit, action =', action)
   const { payload: { code } } = action
   const event = {
-    messageType: EventNames.CodeSync,
+    messageType: SocketEventNames.CodeSync,
     payload: { code }
   }
-  socket.emit(EventNames.CodeSync, event)
+  socket.emit(SocketEventNames.CodeSync, event)
 }

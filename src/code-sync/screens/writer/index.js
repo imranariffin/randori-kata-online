@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
 
-import { emitCodeSync, initCodeSync } from '../../actions'
+import { codeSyncEmit, codeSyncInit } from '../../actions'
 import { getIsSocketConnected, getIsWritingMode, getSyncedCode } from '../../selectors'
 
 const Writer = () => {
@@ -12,7 +12,7 @@ const Writer = () => {
   const isWritingMode = useSelector(getIsWritingMode)
 
   useEffect(() => {
-    dispatch(initCodeSync.init())
+    dispatch(codeSyncInit.init())
   }, [dispatch])
 
   if (!isSocketConnected) {
@@ -30,7 +30,7 @@ const Writer = () => {
         value={syncedCode || code}
         onChange={(event) => {
           setCode(event.target.value)
-          dispatch(emitCodeSync.init(event))
+          dispatch(codeSyncEmit.init(event))
         }}
       />
     </section>
