@@ -2,7 +2,8 @@ import socketio from 'socket.io-client'
 import { eventChannel } from 'redux-saga'
 import { call, delay, put, spawn, take, takeEvery } from 'redux-saga/effects'
 
-import { emitCodeSync, initCodeSync, receiveCodeSync, switchWriter } from './actions'
+import { codeSyncReconnected, emitCodeSync, initCodeSync, receiveCodeSync, switchWriter } from './actions'
+import { EventNames } from './constants'
 
 export function* runCodeSyncSagas() {
   yield call(console.log, 'running code sync sagas')
@@ -16,21 +17,27 @@ let socket
 const createSocketChannel = (socket) => {
   console.log('start createSocketChannel, socket =', socket)
   return eventChannel(emit => {
-    socket.on('chat-message', (event) => {
-      console.log('chat-message, event =', event)
+    socket.on(EventNames.CodeSync, (event) => {
+      console.log(`${EventNames.CodeSync}, event =`, event)
       emit(event)
     })
 
-    socket.on('switch-writer', (event) => {
-      console.log('switch-writer, event =', event)
-      event.messageType = 'switch-writer'
-      emit({ messageType: 'switch-writer', payload: { writer: event.writer }})
+    socket.on(EventNames.WriterSwitch, (event) => {
+      console.log(`${EventNames.WriterSwitch}, event =`, event)
+      event.messageType = EventNames.WriterSwitch
+      emit({ ...event, payload: { writer: event.writer } })
+    })
+
+    socket.on(EventNames.Connect, () => {
+      console.log(`connect, event =`, undefined)
+      emit({ messageType: EventNames.Connect, payload: { socketId: socket.id } })
     })
 
     return () => {
-      socket.off('chat-message', () => {
-        console.log('unsubscribing from `chat-message`')
+      socket.off(EventNames.CodeSync, () => {
+        console.log(`unsubscribing from '${EventNames.CodeSync}'`)
       })
+      console.log(`Closing connection '${socket.id}'`)
       socket.close()
     }
   })
@@ -53,42 +60,35 @@ export function* handleInitCodeSync() {
 function* listenToSocketEvents() {
   yield take(initCodeSync.SUCCESS_TYPE)
   const socketChannel = yield call(createSocketChannel, socket)
-  yield call(console.log, 'before takeevery socketChannel')
   yield takeEvery(socketChannel, handleSocketEvents)
-  yield call(console.log, 'after takeevery socketChannel')
 }
 
 function* handleSocketEvents(event) {
   console.log('handleSocketEvents, event =', event)
   switch (event.messageType) {
-    case 'chat-message': {
+    case EventNames.CodeSync: {
       yield put(receiveCodeSync.success(event.payload.code))
+      break
     }
-    case 'switch-writer': {
-      console.log('!!!!!!!!!!!!!!!!!!!')
+    case EventNames.WriterSwitch: {
       yield put(switchWriter.success(event.payload.writer))
+      break
+    }
+    case EventNames.Connect: {
+      yield put(codeSyncReconnected.success(event.payload.socketId))
+      break
     }
     default:
       return
   }
 }
 
-export function* onMessageEvent() {
-  console.log('start onMessageEvent')
-  const handleChatMessage = () => {
-    socket.on('chat-message', (event) => {
-      console.log('chat-message, event =', event)
-    })
-  }
-  yield call(handleChatMessage)
-}
-
 export function* handleEmitCodeSync(action) {
   yield call(console.log, 'start handleEmitCodeSync, action =', action)
   const { payload: { code } } = action
   const event = {
-    messageType: 'chat-message',
+    messageType: EventNames.CodeSync,
     payload: { code }
   }
-  socket.emit('chat-message', event)
+  socket.emit(EventNames.CodeSync, event)
 }

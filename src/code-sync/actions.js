@@ -6,6 +6,10 @@ export const initCodeSync = Action('initCodeSync', {
   success: (socketId) => ({ socketId })
 })
 
+export const codeSyncReconnected = Action('codeSyncReconnected', {
+  success: (socketId) => ({ socketId })
+})
+
 export const emitCodeSync = Action('emitCodeSync', {
   init: (event) => ({ code: event.target.value })
 })
