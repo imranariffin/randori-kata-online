@@ -2,11 +2,15 @@ import socketio from 'socket.io-client'
 import { eventChannel } from 'redux-saga'
 import { call, delay, put, spawn, take, takeEvery } from 'redux-saga/effects'
 
+import { Env } from '../envs'
+import logging from '../logging/logger'
+
 import { codeSyncReconnect, codeSyncEmit, codeSyncInit, codeSyncReceived, writerSwitch } from './actions'
 import { SocketEventNames } from './constants'
 
+const logger = logging.getLogger('code-sync/sagas')
+
 export function* runCodeSyncSagas() {
-  yield call(console.log, 'running code sync sagas')
   yield takeEvery(codeSyncInit.INIT_TYPE, handleCodeSyncInit)
   yield takeEvery(codeSyncEmit.INIT_TYPE, handleCodeSyncEmit)
   yield spawn(listenToSocketEvents)
@@ -15,37 +19,33 @@ export function* runCodeSyncSagas() {
 let socket
 
 const createSocketChannel = (socket) => {
-  console.log('start createSocketChannel, socket =', socket)
   return eventChannel(emit => {
     socket.on(SocketEventNames.CodeSync, (event) => {
-      console.log(`${SocketEventNames.CodeSync}, event =`, event)
       emit(event)
     })
 
     socket.on(SocketEventNames.WriterSwitch, (event) => {
-      console.log(`${SocketEventNames.WriterSwitch}, event =`, event)
       event.messageType = SocketEventNames.WriterSwitch
       emit({ ...event, payload: { writer: event.writer } })
     })
 
     socket.on(SocketEventNames.Connect, () => {
-      console.log(`connect, event =`, undefined)
       emit({ messageType: SocketEventNames.Connect, payload: { socketId: socket.id } })
     })
 
     return () => {
       socket.off(SocketEventNames.CodeSync, () => {
-        console.log(`unsubscribing from '${SocketEventNames.CodeSync}'`)
+        logger.log(`unsubscribing from '${SocketEventNames.CodeSync}'`)
       })
-      console.log(`Closing connection '${socket.id}'`)
+      logger.log(`Closing connection '${socket.id}'`)
       socket.close()
     }
   })
 }
 
 export function* handleCodeSyncInit() {
-  yield call(console.log, 'handling codeSyncInit')
-  socket = yield call(socketio, 'http://localhost:3000')
+  yield call(logger.log, 'handling codeSyncInit')
+  socket = yield call(socketio, `${Env.API_HOST}:${Env.API_PORT}`)
   const onConnect = () => new Promise((resolve) => {
     socket.on('connect', () => {
       resolve()
@@ -53,18 +53,20 @@ export function* handleCodeSyncInit() {
   })
   yield call(onConnect)
   yield delay(500)
-  yield call(console.log, 'Connected, socketid =', socket.id)
+  yield call(logger.log, 'Connected, socketid =', socket.id)
   yield put(codeSyncInit.success(socket.id))
 }
 
 function* listenToSocketEvents() {
   yield take(codeSyncInit.SUCCESS_TYPE)
+  yield call(logger.log, 'Creating socket channel')
   const socketChannel = yield call(createSocketChannel, socket)
+  yield call(logger.log, 'socket =', socket)
   yield takeEvery(socketChannel, handleSocketEvents)
 }
 
 function* handleSocketEvents(event) {
-  console.log('handleSocketEvents, event =', event)
+  yield call(logger.log, 'Handling socket event [event =', event, ']')
   switch (event.messageType) {
     case SocketEventNames.CodeSync: {
       yield put(codeSyncReceived.success(event.payload.code))
@@ -84,7 +86,7 @@ function* handleSocketEvents(event) {
 }
 
 export function* handleCodeSyncEmit(action) {
-  yield call(console.log, 'start handleCodeSyncEmit, action =', action)
+  yield call(logger.log, 'start handleCodeSyncEmit, action =', action)
   const { payload: { code } } = action
   const event = {
     messageType: SocketEventNames.CodeSync,
