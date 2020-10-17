@@ -1,0 +1,29 @@
+name: Dev Pull Request Workflow
+
+on:
+  pull_request:
+    branches:
+      - master
+
+env:
+  REACT_APP_RANDORIKATA__WEB__API_HOST: http://138.197.145.110
+  REACT_APP_RANDORIKATA__WEB__API_PORT: 80
+  REACT_APP_RANDORIKATA__WEB__CI: 1
+  REACT_APP_RANDORIKATA__WEB__LOGGING_ENABLED: 1
+
+  run_tests:
+    name: Run Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
+        with:
+          ref: ${{ env.GITHUB_REF }}
+
+      - name: Yarn Install On Github Action
+        run: yarn
+
+      - name: Run Tests
+        run: |
+          yarn test --coverage true --verbose true
