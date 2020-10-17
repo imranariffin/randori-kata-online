@@ -11,6 +11,7 @@ env:
   REACT_APP_RANDORIKATA__WEB__CI: 1
   REACT_APP_RANDORIKATA__WEB__LOGGING_ENABLED: 1
 
+jobs:
   run_tests:
     name: Run Tests
     runs-on: ubuntu-latest
