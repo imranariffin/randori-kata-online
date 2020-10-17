@@ -10,7 +10,7 @@ import { SocketEventNames } from './constants'
 
 const logger = logging.getLogger('code-sync/sagas')
 
-export function* runCodeSyncSagas() {
+export function * runCodeSyncSagas () {
   yield takeEvery(codeSyncInit.INIT_TYPE, handleCodeSyncInit)
   yield takeEvery(codeSyncEmit.INIT_TYPE, handleCodeSyncEmit)
   yield spawn(listenToSocketEvents)
@@ -43,7 +43,7 @@ const createSocketChannel = (socket) => {
   })
 }
 
-export function* handleCodeSyncInit() {
+export function * handleCodeSyncInit () {
   yield call(logger.log, 'handling codeSyncInit')
   socket = yield call(socketio, `${Env.API_HOST}:${Env.API_PORT}`)
   const onConnect = () => new Promise((resolve) => {
@@ -57,7 +57,7 @@ export function* handleCodeSyncInit() {
   yield put(codeSyncInit.success(socket.id))
 }
 
-function* listenToSocketEvents() {
+function * listenToSocketEvents () {
   yield take(codeSyncInit.SUCCESS_TYPE)
   yield call(logger.log, 'Creating socket channel')
   const socketChannel = yield call(createSocketChannel, socket)
@@ -65,7 +65,7 @@ function* listenToSocketEvents() {
   yield takeEvery(socketChannel, handleSocketEvents)
 }
 
-function* handleSocketEvents(event) {
+function * handleSocketEvents (event) {
   yield call(logger.log, 'Handling socket event [event =', event, ']')
   switch (event.messageType) {
     case SocketEventNames.CodeSync: {
@@ -81,11 +81,10 @@ function* handleSocketEvents(event) {
       break
     }
     default:
-      return
   }
 }
 
-export function* handleCodeSyncEmit(action) {
+export function * handleCodeSyncEmit (action) {
   yield call(logger.log, 'start handleCodeSyncEmit, action =', action)
   const { payload: { code } } = action
   const event = {

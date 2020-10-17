@@ -9,4 +9,3 @@ export const loggerMiddleware = (logger) => (store) => (next) => (action) => {
 
   return returnedAction
 }
-

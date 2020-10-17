@@ -4,7 +4,7 @@ const initialState = {
   status: 'noop',
   code: '',
   mode: 'reader',
-  socketId: '',
+  socketId: ''
 }
 
 const reducer = (state = initialState, action) => {
@@ -12,7 +12,7 @@ const reducer = (state = initialState, action) => {
     case codeSyncInit.INIT_TYPE: {
       return {
         ...state,
-        status: 'in-progress',
+        status: 'in-progress'
       }
     }
     case codeSyncInit.SUCCESS_TYPE: {
@@ -20,7 +20,7 @@ const reducer = (state = initialState, action) => {
       return {
         ...state,
         status: 'completed',
-        socketId,
+        socketId
       }
     }
     case codeSyncInit.FAILURE_TYPE: {

@@ -11,11 +11,11 @@ const _log = (...args) => {
 const getLogger = (namespace) => {
   const namespacePattern = `[${namespace}]`
   return {
-    log: (...args) => _log(namespacePattern, ...args),
+    log: (...args) => _log(namespacePattern, ...args)
   }
 }
 
 export default {
   log: _log,
-  getLogger,
+  getLogger
 }

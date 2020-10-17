@@ -17,7 +17,7 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
-    "test": "react-scripts test",
+    "test": "CI=$REACT_APP_RANDORIKATA__WEB__CI react-scripts test --all --color --watch false",
     "eject": "react-scripts eject"
   },
   "eslintConfig": {
