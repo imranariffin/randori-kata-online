@@ -21,6 +21,10 @@ env:
         with:
           ref: ${{ env.GITHUB_REF }}
 
+      - uses: actions/setup-node@v1
+        with:
+          node-version: '13.x'
+
       - name: Yarn Install On Github Action
         run: yarn
 
